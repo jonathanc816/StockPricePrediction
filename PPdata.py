@@ -35,8 +35,6 @@ plt.xlabel('year')
 plt.ylabel('closing price')
 
 
-
-
 def standardize(col):
     scaler = preprocessing.StandardScaler().fit(np.array(col).reshape(-1, 1))
     x_scaled = scaler.transform(np.array(col).reshape(-1, 1))
@@ -57,7 +55,15 @@ aapl_training_set = aapl_close[:2000]
 aapl_test_set = aapl_close[2000:]
 
 aapl_training_x, aapl_training_y = split_data(aapl_training_set, 24)
-aapl_training_x = tf.from_numpy(aapl_training_x)
-aapl_training_y = tf.from_numpy(aapl_training_y)
+aapl_training_x = tf.from_numpy(aapl_training_x).type(tf.Tensor)
+aapl_training_y = tf.from_numpy(aapl_training_y).type(tf.Tensor)
 aapl_training_x = aapl_training_x.unsqueeze(2)
+# aapl_training_x = np.reshape(aapl_training_x, (aapl_training_x.shape[0],
+#                                                aapl_training_x.shape[1], 1))
+
+aapl_test_x, aapl_test_y = split_data(aapl_test_set, 24)
+aapl_test_x = tf.from_numpy(aapl_test_x).type(tf.Tensor)
+aapl_test_y = tf.from_numpy(aapl_test_y).type(tf.Tensor)
+aapl_test_x = aapl_test_x.unsqueeze(2)
+# aapl_test_x = np.reshape(aapl_test_x, (aapl_test_x.shape[0],aapl_test_x.shape[1], 1))
 
