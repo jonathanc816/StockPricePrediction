@@ -21,27 +21,38 @@ args_dict = {
 }
 
 class LSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, dropout):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim, dropout):
         super().__init__()
         self.hidden_dim = hidden_dim
 
-        self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
+        self.linear_1 = nn.Linear(input_dim, hidden_dim)
+        self.relu = nn.ReLU()
+        self.lstm = nn.LSTM(hidden_dim, hidden_size=self.hidden_dim, num_layers=num_layers, batch_first=True)
         self.dropout = nn.Dropout(dropout)
-        self.linear = nn.Linear(hidden_dim, output_dim)
+        self.linear_2 = nn.Linear(num_layers*hidden_dim, output_dim)
 
     def forward(self, x):
         batchsize = x.shape[0]
 
+        # layer 1
+        x = self.linear_1(x)
+        x = self.relu(x)
+
         # LSTM layer
         lstm_out, (h_n, c_n) = self.lstm(x)
+
+        # reshape output from hidden cell into [batch, features] for `linear_2`
         x = h_n.permute(1, 0, 2).reshape(batchsize, -1)
+
+        # layer 2
         x = self.dropout(x)
-        predictions = self.linear(x)
+        predictions = self.linear_2(x)
         return predictions[:,-1]
 
 #  define the LSTM model
 model = LSTMModel(input_dim=args_dict["input_size"],
                   hidden_dim=args_dict["hidden_layer_size"],
+                  num_layers=args_dict["num_layers"],
                   output_dim=args_dict["output_size"],
                   dropout=args_dict["dropout"])
 

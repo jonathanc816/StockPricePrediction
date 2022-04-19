@@ -35,8 +35,9 @@ plt.title("s&p500 2013-2022")
 plt.xlabel('year')
 plt.ylabel('closing price')
 
+
+scaler = preprocessing.StandardScaler()
 def standardize(col):
-    scaler = preprocessing.StandardScaler()
     fitting = scaler.fit(np.array(col).reshape(-1, 1))
     x_scaled = fitting.transform(np.array(col).reshape(-1, 1))
     return x_scaled, scaler
@@ -51,24 +52,17 @@ def split_data(df, duration):
     return input_x, target
 
 
-
+appl_price = aapl_csv_df['Close']
 aapl_close = standardize(aapl_csv_df['Close'])[0]
 aapl_close_scaler = standardize(aapl_csv_df['Close'])[1]
 aapl_training_set = aapl_close[:1600] # 75% training set
 aapl_test_set = aapl_close[1600:] # 25% test set
 
 aapl_training_x, aapl_training_y = split_data(aapl_training_set, 24)
-# aapl_training_x = tf.from_numpy(aapl_training_x).type(tf.Tensor)
-# aapl_training_y = tf.from_numpy(aapl_training_y).type(tf.Tensor)
-# aapl_training_x = aapl_training_x.unsqueeze(2)
-# aapl_training_x = np.reshape(aapl_training_x, (aapl_training_x.shape[0],
-#                                                aapl_training_x.shape[1], 1))
+
 
 aapl_test_x, aapl_test_y = split_data(aapl_test_set, 24)
-# aapl_test_x = tf.from_numpy(aapl_test_x).type(tf.Tensor)
-# aapl_test_y = tf.from_numpy(aapl_test_y).type(tf.Tensor)
-# aapl_test_x = aapl_test_x.unsqueeze(2)
-# aapl_test_x = np.reshape(aapl_test_x, (aapl_test_x.shape[0],aapl_test_x.shape[1], 1))
+
 
 
 class StockData(Dataset):
