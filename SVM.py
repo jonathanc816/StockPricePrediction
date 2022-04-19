@@ -4,9 +4,10 @@ from sklearn import svm
 import pandas as pd
 import numpy as np
 
-# import matplotlib.pyplot as plt
+import matplotlib
+# matplotlib.use('GTK3Agg')
+import matplotlib.pyplot as plt
 # plt.style.use('seaborn-darkgrid')
-
 
 
 def simple_SVM():
@@ -29,11 +30,30 @@ def simple_SVM():
     y_test = y[split:]
 
     # fit our SVM model and calculate its score 
-    rbf_svm = svm.SVC(kernel='rbf')
-    rbf_svm.fit(X_train, y_train)
+    svm_model = svm.SVC(kernel='rbf')
+    svm_model.fit(X_train, y_train)
     # mean accuracy on the given test data and labels
-    score = rbf_svm.score(X_test, y_test) 
+    score = svm_model.score(X_test, y_test) 
     print("mean acc =",score)
+
+    prediction = svm_model.predict(X_test)
+    df['Predicted_Signal'] = svm_model.predict(X)
+    df['pct_change'] = df["Close"].pct_change() 
+    df['strat_change'] = df["pct_change"] * df["Predicted_Signal"].shift(1)
+    df['cumulative_change'] = df['pct_change'].cumsum()
+    df['cumulative_strat'] = df['strat_change'].cumsum()
+
+    plt.figure()
+    plt.plot(df['cumulative_change'], label="actual returns")
+    plt.plot(df['cumulative_strat'], label='predicted returns')
+    plt.legend()
+
+
+    # plt.figure()
+    # plt.plot(y_test, label='actual')
+    # plt.plot(prediction, label='predicted')
+    # plt.legend()
+    plt.show()
 
 
 def main():
