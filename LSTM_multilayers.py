@@ -10,11 +10,11 @@ import matplotlib.dates as md
 
 args_dict = {
     "input_size": 1,
-    "hidden_layer_size": 20,
+    "hidden_layer_size": 30,
     "num_layers": 2,
     "output_size": 1,
     "dropout": 0.8,
-    "batch_size": 128,
+    "batch_size": 64,
     "step_size": 40,
     "lr": 0.1,
     "epoch": 100
@@ -41,7 +41,6 @@ class LSTMModel(nn.Module):
         # LSTM layer
         lstm_out, (h_n, c_n) = self.lstm(x)
 
-        # reshape output from hidden cell into [batch, features] for `linear_2`
         x = h_n.permute(1, 0, 2).reshape(batchsize, -1)
 
         # layer 2

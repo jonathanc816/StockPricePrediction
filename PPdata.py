@@ -51,7 +51,7 @@ def split_data(df, duration):
     input_x, target = np.array(input_x), np.array(target)
     return input_x, target
 
-
+#APPL
 appl_price = aapl_csv_df['Close']
 aapl_close = standardize(aapl_csv_df['Close'])[0]
 aapl_close_scaler = standardize(aapl_csv_df['Close'])[1]
@@ -62,7 +62,6 @@ aapl_training_x, aapl_training_y = split_data(aapl_training_set, 24)
 
 
 aapl_test_x, aapl_test_y = split_data(aapl_test_set, 24)
-
 
 
 class StockData(Dataset):
