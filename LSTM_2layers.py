@@ -4,18 +4,17 @@ from torch import optim
 from PPdata import training_set, test_set
 import numpy as np
 from torch.utils.data import DataLoader
-import ranger
 
 args_dict = {
     "input_size": 1,
     "hidden_layer_size": 32,
     "num_layers": 2,
     "output_size": 1,
-    "dropout": 0.7,
+    "dropout": 0.2,
     "batch_size": 64,
     "step_size": 40,
-    "lr": 0.1,
-    "epoch": 100
+    "lr": 0.01,
+    "epoch": 50
 }
 
 class LSTMModel(nn.Module):
@@ -23,12 +22,18 @@ class LSTMModel(nn.Module):
         super().__init__()
         self.hidden_layer_size = hidden_layer_size
 
-        self.lstm = nn.LSTM(input_size, hidden_layer_size, batch_first=True)
+        self.linear_1 = nn.Linear(input_size, hidden_layer_size)
+        self.relu = nn.ReLU()
+        self.lstm = nn.LSTM(hidden_layer_size, hidden_size=self.hidden_layer_size, num_layers=num_layers, batch_first=True)
         self.dropout = nn.Dropout(dropout)
-        self.linear_2 = nn.Linear(hidden_layer_size, output_size)
+        self.linear_2 = nn.Linear(num_layers*hidden_layer_size, output_size)
 
     def forward(self, x):
         batchsize = x.shape[0]
+
+        # layer 1
+        x = self.linear_1(x)
+        x = self.relu(x)
 
         # LSTM layer
         lstm_out, (h_n, c_n) = self.lstm(x)
@@ -41,12 +46,7 @@ class LSTMModel(nn.Module):
         predictions = self.linear_2(x)
         return predictions[:,-1]
 
-#  define the LSTM model
-model = LSTMModel(input_size=args_dict["input_size"],
-                  hidden_layer_size=args_dict["hidden_layer_size"],
-                  num_layers=args_dict["num_layers"],
-                  output_size=args_dict["output_size"],
-                  dropout=args_dict["dropout"])
+model = LSTMModel(input_size=1, hidden_layer_size=2, num_layers=32, output_size=1, dropout=0.2)
 
 
 def run_epoch(dataloader, is_training=False):
@@ -76,33 +76,32 @@ def run_epoch(dataloader, is_training=False):
 
     return epoch_loss, lr
 
-# create DataLoaders
-train_dataloader = DataLoader(training_set, batch_size=args_dict["batch_size"], shuffle=True)
-val_dataloader = DataLoader(test_set, batch_size=args_dict["batch_size"], shuffle=True)
+# create `DataLoader`
+train_dataloader = DataLoader(training_set, batch_size=64, shuffle=True)
+val_dataloader = DataLoader(test_set, batch_size=64, shuffle=True)
 
-# define optimizer (either Ranger or Adam), scheduler and MSE loss function
+# define optimizer, scheduler and loss function
 criterion = nn.MSELoss()
-# optimizer = optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.98), eps=1e-9)
-optimizer = ranger.Ranger(model.parameters(), lr=0.1)
+optimizer = optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.98), eps=1e-9)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.1)
 
-#training
-for epoch in range(args_dict["epoch"]):
+# begin training
+for epoch in range(50):
     loss_train, lr_train = run_epoch(train_dataloader, is_training=True)
     loss_val, lr_val = run_epoch(val_dataloader)
     scheduler.step()
 
     print('Epoch[{}/{}] | loss train:{:.6f}, test:{:.6f} | lr:{:.6f}'
-          .format(epoch+1, args_dict["epoch"], loss_train, loss_val, lr_train))
+          .format(epoch+1, 100, loss_train, loss_val, lr_train))
 
 
-train_dataloader = DataLoader(training_set, batch_size=args_dict["batch_size"], shuffle=False)
-test_dataloader = DataLoader(test_set, batch_size=args_dict["batch_size"], shuffle=False)
+train_dataloader = DataLoader(training_set, batch_size=64, shuffle=False)
+val_dataloader = DataLoader(test_set, batch_size=64, shuffle=False)
 
 model.eval()
 
+# predict on the training data, to see how well the model managed to learn and memorize
 
-#Training set
 predicted_train = np.array([])
 
 for idx, (x, y) in enumerate(train_dataloader):
@@ -110,23 +109,19 @@ for idx, (x, y) in enumerate(train_dataloader):
     out = out.detach().numpy()
     predicted_train = np.concatenate((predicted_train, out))
 
-#Test set
+# predict on the validation data, to see how the model does
 
-predicted_test = np.array([])
+predicted_val = np.array([])
 
-for idx, (x, y) in enumerate(test_dataloader):
+for idx, (x, y) in enumerate(val_dataloader):
     out = model(x)
     out = out.detach().numpy()
-    predicted_test = np.concatenate((predicted_test, out))
+    predicted_val = np.concatenate((predicted_val, out))
 
 plt.figure()
-plt.plot(test_set.y, label="actual")
-plt.plot(predicted_test, label="predicted")
-plt.title("test set")
-plt.legend()
+plt.plot(test_set.y)
+plt.plot(predicted_val)
 
 plt.figure()
-plt.plot(training_set.y, label="actual")
-plt.plot(predicted_train, label="predicted")
-plt.title("training set")
-plt.legend()
+plt.plot(training_set.y)
+plt.plot(predicted_train)
