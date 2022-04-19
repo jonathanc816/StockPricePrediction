@@ -5,7 +5,8 @@ import pandas as pd
 from sklearn import preprocessing
 from datetime import datetime
 import matplotlib.dates as md
-from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
+
 
 #aapl_df = yf.download('AAPL', start='2013-11-05', end='2022-04-13', progress=False)
 aapl_csv_df = pd.read_csv('data/AAPL.csv')
@@ -34,7 +35,6 @@ plt.title("s&p500 2013-2022")
 plt.xlabel('year')
 plt.ylabel('closing price')
 
-
 def standardize(col):
     scaler = preprocessing.StandardScaler()
     fitting = scaler.fit(np.array(col).reshape(-1, 1))
@@ -61,12 +61,30 @@ aapl_training_x, aapl_training_y = split_data(aapl_training_set, 24)
 # aapl_training_x = tf.from_numpy(aapl_training_x).type(tf.Tensor)
 # aapl_training_y = tf.from_numpy(aapl_training_y).type(tf.Tensor)
 # aapl_training_x = aapl_training_x.unsqueeze(2)
-aapl_training_x = np.reshape(aapl_training_x, (aapl_training_x.shape[0],
-                                               aapl_training_x.shape[1], 1))
+# aapl_training_x = np.reshape(aapl_training_x, (aapl_training_x.shape[0],
+#                                                aapl_training_x.shape[1], 1))
 
 aapl_test_x, aapl_test_y = split_data(aapl_test_set, 24)
 # aapl_test_x = tf.from_numpy(aapl_test_x).type(tf.Tensor)
 # aapl_test_y = tf.from_numpy(aapl_test_y).type(tf.Tensor)
 # aapl_test_x = aapl_test_x.unsqueeze(2)
-aapl_test_x = np.reshape(aapl_test_x, (aapl_test_x.shape[0],aapl_test_x.shape[1], 1))
+# aapl_test_x = np.reshape(aapl_test_x, (aapl_test_x.shape[0],aapl_test_x.shape[1], 1))
 
+
+class StockData(Dataset):
+    def __init__(self, x, y):
+        x = np.reshape(x, (x.shape[0], x.shape[1], 1))
+        self.x = x.astype(np.float32)
+        self.y = y.astype(np.float32)
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, index):
+        return (self.x[index], self.y[index])
+
+
+training_set = StockData(aapl_training_x, aapl_training_y)
+test_set = StockData(aapl_test_x, aapl_test_y)
+print("Training data shape", training_set.x.shape, training_set.y.shape)
+print("Test data shape", test_set.x.shape, test_set.y.shape)
