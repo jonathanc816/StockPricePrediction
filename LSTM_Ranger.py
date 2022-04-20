@@ -13,8 +13,8 @@ args_dict = {
     "hidden_layer_size": 20,
     "num_layers": 2,
     "output_size": 1,
-    "dropout": 0.8,
-    "batch_size": 128,
+    "dropout": 0.6,
+    "batch_size": 32,
     "step_size": 40,
     "lr": 0.1,
     "epoch": 100

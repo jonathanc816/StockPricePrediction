@@ -10,11 +10,11 @@ import matplotlib.dates as md
 
 args_dict = {
     "input_size": 1,
-    "hidden_layer_size": 30,
+    "hidden_layer_size": 32,
     "num_layers": 2,
     "output_size": 1,
-    "dropout": 0.8,
-    "batch_size": 64,
+    "dropout": 0.2,
+    "batch_size": 128,
     "step_size": 40,
     "lr": 0.1,
     "epoch": 100
@@ -25,25 +25,26 @@ class LSTMModel(nn.Module):
         super().__init__()
         self.hidden_dim = hidden_dim
 
-        self.linear_1 = nn.Linear(input_dim, hidden_dim)
-        self.relu = nn.ReLU()
-        self.lstm = nn.LSTM(hidden_dim, hidden_size=self.hidden_dim, num_layers=num_layers, batch_first=True)
+
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=num_layers, batch_first=True)
+        self.lstm2 = nn.LSTM(hidden_dim, hidden_dim, num_layers=num_layers, batch_first=True)
         self.dropout = nn.Dropout(dropout)
         self.linear_2 = nn.Linear(num_layers*hidden_dim, output_dim)
 
     def forward(self, x):
         batchsize = x.shape[0]
 
-        # layer 1
-        x = self.linear_1(x)
-        x = self.relu(x)
-
-        # LSTM layer
         lstm_out, (h_n, c_n) = self.lstm(x)
+        x = self.dropout(lstm_out)
 
+        lstm_out, (h_n, c_n) = self.lstm2(x)
+        x = self.dropout(lstm_out)
+
+        lstm_out, (h_n, c_n) = self.lstm2(x)
+        x = self.dropout(lstm_out)
+
+        lstm_out, (h_n, c_n) = self.lstm2(x)
         x = h_n.permute(1, 0, 2).reshape(batchsize, -1)
-
-        # layer 2
         x = self.dropout(x)
         predictions = self.linear_2(x)
         return predictions[:,-1]
