@@ -2,6 +2,14 @@ import math
 import torch
 from torch.optim.optimizer import Optimizer
 
+# @misc{Ranger,
+#       author = {Wright, Less},
+#                title = {Ranger - a synergistic optimizer.},
+# year = {2019},
+#        publisher = {GitHub},
+#                    journal = {GitHub repository},
+# howpublished = {\url{https://github.com/lessw2020/Ranger-Deep-Learning-Optimizer}}
+# }
 
 def centralized_gradient(x, use_gc=True, gc_conv_only=False):
     '''credit - https://github.com/Yonghongwei/Gradient-Centralization '''

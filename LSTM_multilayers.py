@@ -10,13 +10,13 @@ import matplotlib.dates as md
 
 args_dict = {
     "input_size": 1,
-    "hidden_layer_size": 32,
+    "hidden_layer_size": 50,
     "num_layers": 2,
     "output_size": 1,
-    "dropout": 0.2,
+    "dropout": 0.8,
     "batch_size": 128,
     "step_size": 40,
-    "lr": 0.1,
+    "lr": 0.01,
     "epoch": 100
 }
 

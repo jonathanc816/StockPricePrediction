@@ -16,8 +16,9 @@ args_dict = {
     "dropout": 0.6,
     "batch_size": 32,
     "step_size": 40,
-    "lr": 0.1,
-    "epoch": 100
+    "lr": 0.01,
+    "epoch": 100,
+    "opt": "Adam"
 }
 
 class LSTMModel(nn.Module):
@@ -79,7 +80,7 @@ val_dataloader = DataLoader(test_set, batch_size=args_dict["batch_size"], shuffl
 
 # define optimizer (either Ranger or Adam), scheduler and MSE loss function
 criterion = nn.MSELoss()
-# optimizer = optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.98), eps=1e-9)
+# optimizer = optim.Adam(model.parameters(), lr=args_dict["lr"])
 optimizer = ranger.Ranger(model.parameters(), lr=args_dict["lr"])
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args_dict["step_size"], gamma=0.1)
 
@@ -104,7 +105,7 @@ model.eval()
 
 
 plt.figure()
-plt.title("Training vs. Validation Losses")
+plt.title("Training vs. Validation Losses\n{}".format(args_dict["opt"]))
 plt.plot(loss_train_lst, label="Train_loss")
 plt.plot(loss_val_lst, label="Val_loss")
 plt.xlabel("epoch")
@@ -146,7 +147,7 @@ ax.xaxis.set_major_formatter(formatter)
 ax.xaxis.set_major_locator(locator)
 plt.plot(aapl_time[:len(inversed_train)], inversed_train, label="actual")
 plt.plot(aapl_time[:len(inversed_predicted_train)], inversed_predicted_train, label="predicted")
-plt.title("Training set prediction")
+plt.title("Training set prediction\n{}".format(args_dict["opt"]))
 plt.xlabel('year')
 plt.ylabel('closing price')
 plt.legend()
@@ -159,7 +160,7 @@ ax.xaxis.set_major_formatter(formatter)
 ax.xaxis.set_major_locator(locator)
 plt.plot(aapl_time[-len(inversed_test):], inversed_test, label="actual")
 plt.plot(aapl_time[-len(inversed_predicted_test):], inversed_predicted_test, label="predicted")
-plt.title("Test set prediction\nLast 500 days")
+plt.title("Test set prediction (Last 500 days)\n{}".format(args_dict["opt"]))
 plt.xlabel('year')
 plt.ylabel('closing price')
 plt.legend()
@@ -174,7 +175,7 @@ ax.xaxis.set_major_locator(locator)
 plt.plot(aapl_time[:-len(inversed_test)], appl_price[:-len(inversed_test)], label="Actual data (past)")
 plt.plot(aapl_time[-len(inversed_test):], inversed_test, label="Actual price")
 plt.plot(aapl_time[-len(inversed_predicted_test):], inversed_predicted_test, label="Predicted price")
-plt.title("LSTM prediction on AAPL")
+plt.title("LSTM prediction on AAPL\n{}".format(args_dict["opt"]))
 plt.xlabel('year')
 plt.ylabel('closing price')
 plt.legend()
